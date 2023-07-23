@@ -1,23 +1,22 @@
 # json_ext.hpp
 
-An extension library for [nlohmann/json](https://github.com/nlohmann/json).
+Header-only extension library for [nlohmann/json](https://github.com/nlohmann/json).
 
-It uses `boost/preprocessor` to generate the required members and functions.
+- Adds `NLOHMANN_SERIALIZE` and `NLOHMANN_SERIALIZE_STRICT` macros, which defines and reflects member variables in one macro, it also allows for default / non-default values in one macro (basically a mix of `NLOHMANN_DEFINE_TYPE_INTRUSIVE` and `NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULTS`
+- Adds serialization / deserialization for `std::optional` and `std::variant`
+- uses `boost/preprocessor` to generate the reflected members and functions.
 
 ## Rational
 
-In my work I require often to serialize, deserialize classes, nlohmann has the `NLOHMANN_DEFINE_TYPE*` macros for that to quickly reflect elements of a class.
+In my work I require often to serialize, deserialize classes, `nlohmann::json` has the `NLOHMANN_DEFINE_TYPE*` macros for that to quickly reflect elements of a class.
 
 The problem here is that I often forget to add a variable to the reflected set, which then results in errors I have to track down (minor issue just don't forget to do it).
 
-The bigger problem is that the classes either support all values as default or no values as default. This is what I also tried to tackle with my macro, you should be able to supply some variables with defaults, and some should be required during deserialization.
+The bigger problem is that the classes either support all values as defaults or no values as defaults. You should be able to supply some variables with defaults, and some should be required during deserialization. I incorporated this in my macro.
 
 Another feature I am missing is the serialization of `std::variant` and `std::optional`, so I have implemented those based on [this](https://github.com/nlohmann/json#how-do-i-convert-third-party-types), there was also another issue for `std::variant`, but I can't find it (basically just want to say that someone else did the hardcore work).
 
-## Features
-
-- Definition of the variables to serialize is done in one macro, if you don't set a default value, `from_json` will throw an error.
-- There is a second macro `NLOHMANN_SERIALIZE_STRICT`, which if on the json other variables are present will also error out. See examples for more information.
+Also I wanted to play with `boost/preprocessor` :)
 
 ## Examples
 
@@ -52,7 +51,7 @@ int main()
 
 Will error out if you have more variables present in the json than on the class itself.
 
-Doesn't work 100% you can build edge cases, when mixing default values and required values, but good enough for me with this I can parse an `std::variant` more safely.
+Doesn't work 100% you can build an edge case, when mixing default values and required values (good enough for me with this I can parse an `std::variant` more safely).
 
 ```cpp
 #include <nlohmann/json_ext.hpp>
@@ -89,9 +88,28 @@ int main()
 
 ## Run the tests
 
+### Ubuntu
+
+```bash
+sudo apt install -y libboost-dev
+# this library also expects that you have `nlohmann/json.hpp` in your include directories
+```
+
+### Arch Linux
+
 ```bash
 # on Arch
 paru -Sy nlohmann-json boost
+```
+
+### Compile and Run tests
+
+```bash
 make test
 ```
 
+## TODOs
+
+- [ ] fix the edge case for variants
+- [ ] improve the counting of the supplied members, currently done at runtime, but all this information is available at compile time
+- [ ] improve the serialization interface, it is possible to supply just a one dimensional array as in: `(int, a)(int, b)` instead of `((int, a))((int b))`
