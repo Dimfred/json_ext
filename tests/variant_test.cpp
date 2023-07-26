@@ -7,7 +7,7 @@ struct A
 {
     // clang-format off
     NLOHMANN_SERIALIZE_STRICT(A,
-        ((int, a))
+        (int, a)
     )
     // clang-format on
 };
@@ -16,8 +16,8 @@ struct B
 {
     // clang-format off
     NLOHMANN_SERIALIZE_STRICT(B,
-        ((int, a))
-        ((int, b))
+        (int, a)
+        (int, b)
     )
     // clang-format on
 };
