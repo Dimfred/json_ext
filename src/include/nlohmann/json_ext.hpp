@@ -62,17 +62,16 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
     }
 };
 
-// TODO not working yet
 ////////////////////////////////////////////////////////////////////////////////
 /// PLACEHOLDER TO ADAPT ARRAY OF TUPLE
 /// (https://stackoverflow.com/questions/24309309/how-to-use-boost-preprocessor-to-generate-accessors)
 /// With this we can define the serialization with:
 /// Serialization(Type, (type1, name1, value1)(type2, name2, value2))
 /// insteadof: Serialization(Type, ((type1, name1, value1))((type2, name2, value2))
-// #define CREATE_PLACEHOLDER_FILLER_0(a, b, c) ((a, b, c)) CREATE_PLACEHOLDER_FILLER_1
-// #define CREATE_PLACEHOLDER_FILLER_1(a, b, c) ((a, b, c)) CREATE_PLACEHOLDER_FILLER_0
-// #define CREATE_PLACEHOLDER_FILLER_0_END
-// #define CREATE_PLACEHOLDER_FILLER_1_END
+#define CREATE_PLACEHOLDER_FILLER_0(...) ((__VA_ARGS__)) CREATE_PLACEHOLDER_FILLER_1
+#define CREATE_PLACEHOLDER_FILLER_0_END
+#define CREATE_PLACEHOLDER_FILLER_1(...) ((__VA_ARGS__)) CREATE_PLACEHOLDER_FILLER_0
+#define CREATE_PLACEHOLDER_FILLER_1_END
 
 ////////////////////////////////////////////////////////////////////////////////
 /// VARIABLE DEFNITION
@@ -107,7 +106,8 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
     GET_VARIABLE_NAME(var_type_and_name_and_maybe_value) GET_VARIABLE_VALUE(var_type_and_name_and_maybe_value);
 
 #define DEFINE_VARIABLES(var_types_and_names_and_maybe_values)                                                         \
-    BOOST_PP_SEQ_FOR_EACH(DEFINE_VARIABLE, _, var_types_and_names_and_maybe_values)
+    BOOST_PP_SEQ_FOR_EACH(DEFINE_VARIABLE, _,                                                                          \
+                          BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))
 
 ////////////////////////////////////////////////////////////////////////////////
 /// NLOHMANN SERIALIZATION DEFINITION FROM
@@ -129,7 +129,8 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
     friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                                \
     {                                                                                                                  \
         const Type nlohmann_json_default_obj{};                                                                        \
-        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON, _, var_types_and_names_and_maybe_values)                              \
+        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON, _,                                                                    \
+                              BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
     }
 
 #define _DEFINE_FROM_JSON_STRICT(R, data, var_types_and_names_and_maybe_values)                                        \
@@ -141,7 +142,8 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
     {                                                                                                                  \
         uint64_t var_count = 0;                                                                                        \
         const Type nlohmann_json_default_obj{};                                                                        \
-        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON_STRICT, _, var_types_and_names_and_maybe_values)                       \
+        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON_STRICT, _,                                                             \
+                              BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
         if (nlohmann_json_j.size() > var_count)                                                                        \
         {                                                                                                              \
             throw nlohmann::detail::other_error::create(                                                               \
@@ -163,7 +165,8 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
 #define DEFINE_TO_JSON(Type, var_types_and_names_and_maybe_values)                                                     \
     friend void to_json(nlohmann::json &nlohmann_json_j, const Type &nlohmann_json_t)                                  \
     {                                                                                                                  \
-        BOOST_PP_SEQ_FOR_EACH(_DEFINE_TO_JSON, _, var_types_and_names_and_maybe_values)                                \
+        BOOST_PP_SEQ_FOR_EACH(_DEFINE_TO_JSON, _,                                                                      \
+                              BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
     }
 
 ////////////////////////////////////////////////////////////////////////////////

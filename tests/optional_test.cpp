@@ -11,7 +11,7 @@ struct Optional
 {
     // clang-format off
     NLOHMANN_SERIALIZE(Optional,
-        ((std::optional<int>, opt))
+        (std::optional<int>, opt)
     );
     // clang-format on
 };

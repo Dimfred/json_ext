@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <gtest/gtest.h>
 
 #include <nlohmann/json.hpp>
@@ -13,8 +15,8 @@ struct OnlyDefaults
 {
     // clang-format off
     NLOHMANN_SERIALIZE(OnlyDefaults,
-        ((int, a, 1))
-        ((int, b, 2))
+        (int, a, 1)
+        (int, b, 2)
     )
     // clang-format on
 };
@@ -23,8 +25,8 @@ struct OnlyDefaultsStrict
 {
     // clang-format off
     NLOHMANN_SERIALIZE_STRICT(OnlyDefaultsStrict,
-        ((int, a, 1))
-        ((int, b, 2))
+        (int, a, 1)
+        (int, b, 2)
     )
     // clang-format on
 };
@@ -78,8 +80,8 @@ struct OnlyNonDefaults
 {
     // clang-format off
     NLOHMANN_SERIALIZE(OnlyNonDefaults,
-        ((int, a))
-        ((int, b))
+        (int, a)
+        (int, b)
     )
     // clang-format on
 };
@@ -88,8 +90,8 @@ struct OnlyNonDefaultsStrict
 {
     // clang-format off
     NLOHMANN_SERIALIZE_STRICT(OnlyNonDefaultsStrict,
-        ((int, a))
-        ((int, b))
+        (int, a)
+        (int, b)
     )
     // clang-format on
 };
@@ -119,9 +121,9 @@ TEST(TestNlohmannSerialize, OkayNonDefaultsFullOverrideMore)
     EXPECT_EQ(4, obj1.b);
 
     // fails with strict
-    EXPECT_EX(
-        "[json.exception.other_error.600] type must have 2 args, but has 3 args, error in: {\"a\":3,\"b\":4,\"c\":5}",
-        j.get<OnlyNonDefaultsStrict>());
+    EXPECT_EX("[json.exception.other_error.600] type must have 2 args, but has 3 args, error in:"
+              " {\"a\":3,\"b\":4,\"c\":5}",
+              j.get<OnlyNonDefaultsStrict>());
 }
 
 TEST(TestNlohmannSerialize, FailNonDefaultsValueMissing)
@@ -141,8 +143,8 @@ struct MixedDefaultNonDefault
 {
     // clang-format off
     NLOHMANN_SERIALIZE(MixedDefaultNonDefault,
-        ((int, a, 1))
-        ((int, b))
+        (int, a, 1)
+        (int, b)
     )
     // clang-format on
 };
@@ -151,8 +153,8 @@ struct MixedDefaultNonDefaultStrict
 {
     // clang-format off
     NLOHMANN_SERIALIZE_STRICT(MixedDefaultNonDefaultStrict,
-        ((int, a, 1))
-        ((int, b))
+        (int, a, 1)
+        (int, b)
     )
     // clang-format on
 };
@@ -182,7 +184,7 @@ TEST(TestNlohmannSerialize, FailMixedDefaultNonDefault)
 /// EDGE CASE WHICH CIRCUMVENTS STRICT :(
 struct StrictEdgeCase
 {
-    NLOHMANN_SERIALIZE_STRICT(StrictEdgeCase, ((int, a, 42)))
+    NLOHMANN_SERIALIZE_STRICT(StrictEdgeCase, (int, a, 42))
 };
 
 TEST(TestNlohmannSerialize, FailStrictEdgeCase)

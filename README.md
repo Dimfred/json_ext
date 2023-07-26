@@ -30,8 +30,8 @@ Check the tests for more usage examples.
 struct serialize_me_daddy
 {
     NLOHMANN_SERIALIZE(serialize_me_daddy,
-        ((int, required))       /* no default value here */
-        ((int, optional, 42))   /* with default value */
+        (int, required)       /* no default value here */
+        (int, optional, 42)   /* with default value */
     )
 };
 
@@ -59,14 +59,14 @@ Doesn't work 100% you can build an edge case, when mixing default values and req
 struct serialize_me_daddy
 {
     NLOHMANN_SERIALIZE_STRICT(serialize_me_daddy,
-        ((int, required))
+        (int, required)
     )
 };
 
 struct edge_case
 {
     NLOHMANN_SERIALIZE_STRICT(edge_case,
-        ((int, a, 1))
+        (int, a, 1)
     )
 };
 
@@ -112,4 +112,4 @@ make test
 
 - [ ] fix the edge case for variants
 - [ ] improve the counting of the supplied members, currently done at runtime, but all this information is available at compile time
-- [ ] improve the serialization interface, it is possible to supply just a one dimensional array as in: `(int, a)(int, b)` instead of `((int, a))((int b))`
+- [X] improve the serialization interface, it is possible to supply just a one dimensional array as in: `(int, a)(int, b)` instead of `((int, a))((int b))`
