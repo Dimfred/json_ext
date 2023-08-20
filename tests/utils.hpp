@@ -1,6 +1,6 @@
 #pragma once
 
-#define EXPECT_EX(expected_exception_msg, function)                                                                    \
+#define EXPECT_EX(function, expected_exception_msg)                                                                    \
     {                                                                                                                  \
         bool exception_thrown = false;                                                                                 \
         const char *what;                                                                                              \
