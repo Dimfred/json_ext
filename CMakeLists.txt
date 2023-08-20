@@ -20,6 +20,7 @@ fetchcontent_declare(
 fetchcontent_makeavailable(googletest)
 enable_testing()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 file(GLOB_RECURSE TEST_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 add_executable(tests "${TEST_SRCS}")
 target_include_directories(tests PUBLIC "${JSON_EXT_INCLUDE_DIRS}")
