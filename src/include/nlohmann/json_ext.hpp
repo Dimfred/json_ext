@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <string_view>
 #include <variant>
 
 #include <boost/preprocessor/facilities/is_empty_variadic.hpp>
@@ -8,7 +9,7 @@
 #include <nlohmann/adl_serializer.hpp>
 #include <nlohmann/json.hpp>
 
-#define JSON(...) nlohmann::json::parse(#__VA_ARGS__);
+#define JSON(...) nlohmann::json::parse(#__VA_ARGS__)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// SERIALIZATION std::variant
@@ -25,6 +26,8 @@ void variant_from_json(const nlohmann::json &j, std::variant<Ts...> &data, bool 
     }
     catch (...)
     {
+        // if we couldn't parse the variant we don't care, from outside we will just try
+        // the next one
     }
 }
 

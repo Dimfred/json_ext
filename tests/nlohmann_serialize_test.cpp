@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_ext.hpp>
 
-#include "utils.hpp"
+#include "./utils.hpp"
 
 using nlohmann::json;
 
@@ -70,8 +70,8 @@ TEST(TestNlohmannSerialize, OkayDefaultsPartialOverride)
     EXPECT_EQ(4, obj1.b);
 
     auto obj2 = j.get<OnlyDefaultsStrict>();
-    EXPECT_EQ(1, obj1.a);
-    EXPECT_EQ(4, obj1.b);
+    EXPECT_EQ(1, obj2.a);
+    EXPECT_EQ(4, obj2.b);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,18 +123,18 @@ TEST(TestNlohmannSerialize, OkayNonDefaultsFullOverrideMore)
     // fails with strict
     EXPECT_EX("[json.exception.other_error.600] type must have 2 args, but has 3 args, error in:"
               " {\"a\":3,\"b\":4,\"c\":5}",
-              j.get<OnlyNonDefaultsStrict>());
+              j.get<OnlyNonDefaultsStrict>())
 }
 
 TEST(TestNlohmannSerialize, FailNonDefaultsValueMissing)
 {
     auto j = JSON({"a" : 3});
-    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<OnlyNonDefaults>());
-    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<OnlyNonDefaultsStrict>());
+    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<OnlyNonDefaults>())
+    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<OnlyNonDefaultsStrict>())
 
     j = JSON({"b" : 4});
-    EXPECT_EX("[json.exception.out_of_range.403] key 'a' not found", j.get<OnlyNonDefaults>());
-    EXPECT_EX("[json.exception.out_of_range.403] key 'a' not found", j.get<OnlyNonDefaultsStrict>());
+    EXPECT_EX("[json.exception.out_of_range.403] key 'a' not found", j.get<OnlyNonDefaults>())
+    EXPECT_EX("[json.exception.out_of_range.403] key 'a' not found", j.get<OnlyNonDefaultsStrict>())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,8 +176,8 @@ TEST(TestNlohmannSerialize, FailMixedDefaultNonDefault)
 {
     auto j = JSON({"c" : 3});
 
-    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<MixedDefaultNonDefault>());
-    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<MixedDefaultNonDefaultStrict>());
+    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<MixedDefaultNonDefault>())
+    EXPECT_EX("[json.exception.out_of_range.403] key 'b' not found", j.get<MixedDefaultNonDefaultStrict>())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -196,5 +196,5 @@ TEST(TestNlohmannSerialize, FailStrictEdgeCase)
     // at least that works, there are more in the json than define on the class
     auto j2 = JSON({"a" : 1, "c" : 42});
     EXPECT_EX("[json.exception.other_error.600] type must have 1 args, but has 2 args, error in: {\"a\":1,\"c\":42}",
-              j2.get<StrictEdgeCase>());
+              j2.get<StrictEdgeCase>())
 }

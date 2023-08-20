@@ -1,3 +1,5 @@
+#pragma once
+
 #define EXPECT_EX(expected_exception_msg, function)                                                                    \
     {                                                                                                                  \
         bool exception_thrown = false;                                                                                 \
