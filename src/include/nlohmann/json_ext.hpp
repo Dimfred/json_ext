@@ -1,14 +1,18 @@
 #pragma once
 #include <optional>
+#include <string>
+#include <string_view>
 #include <variant>
+#include <vector>
 
 #include <boost/preprocessor/facilities/is_empty_variadic.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/stringize.hpp>
 
 #include <nlohmann/adl_serializer.hpp>
 #include <nlohmann/json.hpp>
 
-#define JSON(...) nlohmann::json::parse(#__VA_ARGS__);
+#define JSON(...) nlohmann::json::parse(#__VA_ARGS__)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// SERIALIZATION std::variant
@@ -25,6 +29,8 @@ void variant_from_json(const nlohmann::json &j, std::variant<Ts...> &data, bool 
     }
     catch (...)
     {
+        // if we couldn't parse the variant we don't care, from outside we will just try
+        // the next one
     }
 }
 
@@ -133,26 +139,40 @@ template <typename T> struct nlohmann::adl_serializer<std::optional<T>>
                               BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
     }
 
-#define _DEFINE_FROM_JSON_STRICT(R, data, var_types_and_names_and_maybe_values)                                        \
-    _DEFINE_FROM_JSON(R, data, var_types_and_names_and_maybe_values)                                                   \
-    ++var_count;
+#define __DEFINE_POSSIBLE_KEYS(var_type_and_name_and_maybe_value)                                                      \
+    BOOST_PP_STRINGIZE(GET_VARIABLE_NAME(var_type_and_name_and_maybe_value)),
+
+#define _DEFINE_POSSIBLE_KEYS(R, data, var_type_and_name_and_maybe_value)                                              \
+    __DEFINE_POSSIBLE_KEYS(var_type_and_name_and_maybe_value)
 
 #define DEFINE_FROM_JSON_STRICT(Type, var_types_and_names_and_maybe_values)                                            \
     friend void from_json(const nlohmann::json &nlohmann_json_j, Type &nlohmann_json_t)                                \
     {                                                                                                                  \
-        uint64_t var_count = 0;                                                                                        \
-        const Type nlohmann_json_default_obj{};                                                                        \
-        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON_STRICT, _,                                                             \
-                              BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
-        if (nlohmann_json_j.size() > var_count)                                                                        \
+        /* strict serialization stores the possible keys in the function, to check if additional keys are present */   \
+        static const std::vector<std::string> possible_keys = {BOOST_PP_SEQ_FOR_EACH(                                  \
+            _DEFINE_POSSIBLE_KEYS, _,                                                                                  \
+            BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))};                    \
+                                                                                                                       \
+        /* check that every key in our json, exists in the reflected keys of our serialized class */                   \
+        for (const auto &item : nlohmann_json_j.items())                                                               \
         {                                                                                                              \
-            throw nlohmann::detail::other_error::create(                                                               \
-                600,                                                                                                   \
-                nlohmann::detail::concat("type must have ", std::to_string(var_count), " args, but has ",              \
-                                         std::to_string(nlohmann_json_j.size()),                                       \
-                                         " args, error in: ", nlohmann_json_j.dump()),                                 \
-                &nlohmann_json_j);                                                                                     \
+            bool is_allowed_key =                                                                                      \
+                std::find(possible_keys.begin(), possible_keys.end(), item.key()) != possible_keys.end();              \
+            /* if an additional aka. non-allowed key is found kill the serialization */                                \
+            if (!is_allowed_key)                                                                                       \
+            {                                                                                                          \
+                throw nlohmann::detail::other_error::create(                                                           \
+                    600,                                                                                               \
+                    nlohmann::detail::concat("key '", item.key(),                                                      \
+                                             "' not present in reflected keys: ", nlohmann_json_j.dump()),             \
+                    &nlohmann_json_j);                                                                                 \
+            }                                                                                                          \
         }                                                                                                              \
+                                                                                                                       \
+        const Type nlohmann_json_default_obj{};                                                                        \
+        /* define the parsing as in the non-strict version */                                                          \
+        BOOST_PP_SEQ_FOR_EACH(_DEFINE_FROM_JSON, _,                                                                    \
+                              BOOST_PP_CAT(CREATE_PLACEHOLDER_FILLER_0 var_types_and_names_and_maybe_values, _END))    \
     }
 
 ////////////////////////////////////////////////////////////////////////////////

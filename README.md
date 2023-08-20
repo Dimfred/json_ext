@@ -51,39 +51,66 @@ int main()
 
 Will error out if you have more variables present in the json than on the class itself.
 
-Doesn't work 100% you can build an edge case, when mixing default values and required values (good enough for me with this I can parse an `std::variant` more safely).
+`NLOHMANN_SERIALIZE_STRICT`, will store the reflected keys.
+In `from_json` it will check whether every key in the json is also present in the reflected set of keys.
+This is particularly useful when you serialize a `std::variant`.
 
 ```cpp
-#include <nlohmann/json_ext.hpp>
-
-struct serialize_me_daddy
+struct TypeA
 {
-    NLOHMANN_SERIALIZE_STRICT(serialize_me_daddy,
-        (int, required)
-    )
+    NLOHMANN_SERIALIZE_STRICT(TypeA,
+        (int, a)
+    );
 };
 
-struct edge_case
+struct TypeB
 {
-    NLOHMANN_SERIALIZE_STRICT(edge_case,
-        (int, a, 1)
-    )
+    NLOHMANN_SERIALIZE_STRICT(TypeB,
+        (int, a)
+        (int, b)
+    );
 };
 
-int main()
+using TypeAB = std::variant<TypeA, TypeB>;
+using TypeBA = std::variant<TypeB, TypeA>;
+
+auto j1 = JSON({"a": 1})
+j1.get<TypeAB>() // will be TypeA
+j1.get<TypeBA>() // will be TypeA
+
+auto j2 = JSON({"a": 1, "b": 2})
+j2.get<TypeAB>() // will be TypeB
+j2.get<TypeBA>() // will be TypeB
+```
+
+There is still an edge case left, which can probably not be fixed, at least not with the deserialization I use.
+
+```cpp
+struct StrictTypeIntersectionA
 {
-    // this is okay only required is present on the json
-    auto j1 = JSON({"required": 1337});
-    auto obj1 = j1.get<serialize_me_daddy>();
+    // clang-format off
+    NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionA,
+        (int, a)
+    )
+    // clang-format on
+};
 
-    // this is not okay! more variables are present in the json than on the cls itself
-    auto j2 = JSON({"required": 1337, "optional": 43});
-    // auto obj2 = j2.get<serialize_me_daddy>();
+struct StrictTypeIntersectionB
+{
+    // clang-format off
+    NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionB,
+        (int, a)
+        (int, b, 2)
+    )
+    // clang-format on
+};
 
-    // edge case will still work, was able to circumvent :(
-    auto j3 = JSON({"c": 3})
-    auto obj3 = j3.get<edge_case>();
-}
+using StrictTypeIntersectionAB = std::variant<StrictTypeIntersectionA, StrictTypeIntersectionB>;
+using StrictTypeIntersectionBA = std::variant<StrictTypeIntersectionB, StrictTypeIntersectionA>;
+
+auto j = JSON({"a":1});
+j.get<StrictTypeIntersectionAB>(); // will result in StrictTypeIntersectionA
+j.get<StrictTypeIntersectionBA>(); // will result in StrictTypeIntersectionB
 ```
 
 ## Run the tests
@@ -91,7 +118,7 @@ int main()
 ### Ubuntu
 
 ```bash
-sudo apt install -y libboost-dev
+sudo apt install -y libboost-dev cmake gcc
 # this library also expects that you have `nlohmann/json.hpp` in your include directories
 ```
 
@@ -99,7 +126,7 @@ sudo apt install -y libboost-dev
 
 ```bash
 # on Arch
-paru -Sy nlohmann-json boost
+paru -Sy nlohmann-json boost cmake gcc
 ```
 
 ### Compile and Run tests
@@ -110,6 +137,6 @@ make test
 
 ## TODOs
 
-- [ ] fix the edge case for variants
-- [ ] improve the counting of the supplied members, currently done at runtime, but all this information is available at compile time
+- [X] fix the edge case for variants
+- [X]  no counting done anymore ~~improve the counting of the supplied members, currently done at runtime, but all this information is available at compile time~~
 - [X] improve the serialization interface, it is possible to supply just a one dimensional array as in: `(int, a)(int, b)` instead of `((int, a))((int b))`

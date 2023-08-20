@@ -20,11 +20,11 @@ TEST(TestOptional, Okay)
 {
     auto j = JSON({"opt" : null});
     auto obj = Optional();
-    EXPECT_EQ(j, static_cast<json>(obj));
-    EXPECT_EQ(j.dump(), static_cast<json>(obj).dump());
+    EXPECT_EQ(static_cast<json>(obj), j);
+    EXPECT_EQ(static_cast<json>(obj).dump(), j.dump());
 
     j = JSON({"opt" : 42});
     obj = j.get<Optional>();
-    EXPECT_EQ(j, static_cast<json>(obj));
-    EXPECT_EQ(j.dump(), static_cast<json>(obj).dump());
+    EXPECT_EQ(static_cast<json>(obj), j);
+    EXPECT_EQ(static_cast<json>(obj).dump(), j.dump());
 }

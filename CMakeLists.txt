@@ -6,19 +6,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(JSON_EXT_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 
-# FIXME not sure whether this really is the minimum version I tested only with 1.81
+# FIXME not sure whether this really is the minimum version I tested only
+# with 1.81
 find_package(Boost 1.65.0)
 include_directories(${Boost_INCLUDE_DIRS})
 
 include(FetchContent)
-FetchContent_Declare(
+fetchcontent_declare(
   googletest
   DOWNLOAD_EXTRACT_TIMESTAMP true
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )
-FetchContent_MakeAvailable(googletest)
+fetchcontent_makeavailable(googletest)
 enable_testing()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 file(GLOB_RECURSE TEST_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 add_executable(tests "${TEST_SRCS}")
 target_include_directories(tests PUBLIC "${JSON_EXT_INCLUDE_DIRS}")
