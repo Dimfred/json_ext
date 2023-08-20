@@ -53,24 +53,65 @@ Will error out if you have more variables present in the json than on the class 
 
 `NLOHMANN_SERIALIZE_STRICT`, will store the reflected keys.
 In `from_json` it will check whether every key in the json is also present in the reflected set of keys.
-This is particularly useful when you serialize a `std::variant`. 
-Image you have a `std::variant<TypeA, TypeB>` with:
+This is particularly useful when you serialize a `std::variant`.
 
 ```cpp
 struct TypeA
 {
-    int a;
-    int b;
+    NLOHMANN_SERIALIZE_STRICT(TypeA,
+        (int, a)
+    );
 };
 
 struct TypeB
 {
-    int a;
+    NLOHMANN_SERIALIZE_STRICT(TypeB,
+        (int, a)
+        (int, b)
+    );
 };
+
+using TypeAB = std::variant<TypeA, TypeB>;
+using TypeBA = std::variant<TypeB, TypeA>;
+
+auto j1 = JSON({"a": 1})
+j1.get<TypeAB>() // will be TypeA
+j1.get<TypeBA>() // will be TypeA
+
+auto j2 = JSON({"a": 1, "b": 2})
+j2.get<TypeAB>() // will be TypeB
+j2.get<TypeBA>() // will be TypeB
 ```
 
-Both have some intersections in their members, depending on the order which you have defined in the `std::variant`, and on the data, now either `TypeA`, or `TypeB` gets successfully deserialized.
-With strict this should not be an issue anymore.
+There is still an edge case left, which can probably not be fixed, at least not with the deserialization I use.
+
+```cpp
+struct StrictTypeIntersectionA
+{
+    // clang-format off
+    NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionA,
+        (int, a)
+    )
+    // clang-format on
+};
+
+struct StrictTypeIntersectionB
+{
+    // clang-format off
+    NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionB,
+        (int, a)
+        (int, b, 2)
+    )
+    // clang-format on
+};
+
+using StrictTypeIntersectionAB = std::variant<StrictTypeIntersectionA, StrictTypeIntersectionB>;
+using StrictTypeIntersectionBA = std::variant<StrictTypeIntersectionB, StrictTypeIntersectionA>;
+
+auto j = JSON({"a":1});
+j.get<StrictTypeIntersectionAB>(); // will result in StrictTypeIntersectionA
+j.get<StrictTypeIntersectionBA>(); // will result in StrictTypeIntersectionB
+```
 
 ## Run the tests
 
