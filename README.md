@@ -88,21 +88,17 @@ There is still an edge case left, which can probably not be fixed, at least not 
 ```cpp
 struct StrictTypeIntersectionA
 {
-    // clang-format off
     NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionA,
         (int, a)
     )
-    // clang-format on
 };
 
 struct StrictTypeIntersectionB
 {
-    // clang-format off
     NLOHMANN_SERIALIZE_STRICT(StrictTypeIntersectionB,
         (int, a)
         (int, b, 2)
     )
-    // clang-format on
 };
 
 using StrictTypeIntersectionAB = std::variant<StrictTypeIntersectionA, StrictTypeIntersectionB>;
@@ -137,6 +133,7 @@ make test
 
 ## TODOs
 
+- [ ] maybe fix variant with optional value case, but probably impossible to do that
 - [X] fix the edge case for variants
 - [X]  no counting done anymore ~~improve the counting of the supplied members, currently done at runtime, but all this information is available at compile time~~
 - [X] improve the serialization interface, it is possible to supply just a one dimensional array as in: `(int, a)(int, b)` instead of `((int, a))((int b))`
